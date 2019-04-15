@@ -1,0 +1,204 @@
+---
+output: 
+  pdf_document:
+    keep_tex: yes
+    fig_caption: yes
+    number_sections: yes
+geometry: margin=2.54cm
+title: Experiment Title
+subtitle: Web address for GitHub repository
+author: Your Name
+abstract: "Experimental overview. This section should be no longer than 250 words."
+fontsize: 12pt
+mainfont: Times New Roman
+---
+
+<Information in these brackets are used for annotating the RMarkdown file. They will not appear in the final version of the PDF document>
+
+\newpage
+\tableofcontents 
+\newpage
+\listoftables 
+\newpage
+\listoffigures 
+\newpage
+
+<Setup the global options for the R chunks in your document>
+
+<Note: set up autoreferencing for figures and tables in your document>
+
+```{r setup, include=FALSE}
+# Set your working directory
+setwd("C:/Users/Wanch/Desktop/ENVI 872 data/ENV872FinalProject")
+
+
+# Load your packages
+library("tidyverse")
+library("ggplot2")
+library("lubridate")
+
+# Set your ggplot theme
+
+```
+
+
+# Research Question and Rationale
+
+<Paragraph detailing the rationale for your analysis. What is the significant application and/or interest in this topic? Connect to environmental topic(s)/challenge(s).>
+
+<>
+
+<Paragraph detailing your research question(s) and goals. What do you want to find out? Include a sentence (or a few) on the dataset you are using to answer this question - just enough to give your reader an idea of where you are going with the analysis.>
+
+\newpage
+
+# Dataset Information
+
+<Information on how the dataset for this analysis were collected, the data contained in the dataset, and any important pieces of information that are relevant to your analyses. This section should contain much of same information as the README file for the dataset but formatted in a way that is more narrative.>
+
+<Add a table that summarizes your data structure. This table can be made in markdown text or inserted as a `kable` function in an R chunk. If the latter, do not include the code used to generate your table.>
+
+\newpage
+
+# Exploratory Data Analysis and Wrangling
+
+<Include R chunks for 5+ lines of summary code (display code and output), 3+ exploratory graphs (display graphs only), and any wrangling you do to your dataset(s).> 
+
+```{r}
+
+
+
+o3_ca_00 <- read.csv("./Raw/ozone_2000_california.csv")
+o3_ca_01 <- read.csv("./Raw/ozone_2001_california.csv")
+o3_ca_02 <- read.csv("./Raw/ozone_2002_california.csv")
+o3_ca_03 <- read.csv("./Raw/ozone_2003_california.csv")
+o3_ca_04 <- read.csv("./Raw/ozone_2004_california.csv")
+o3_ca_05 <- read.csv("./Raw/ozone_2005_california.csv")
+o3_ca_06 <- read.csv("./Raw/ozone_2006_california.csv")
+o3_ca_07 <- read.csv("./Raw/ozone_2007_california.csv")
+o3_ca_08 <- read.csv("./Raw/ozone_2008_california.csv")
+o3_ca_09 <- read.csv("./Raw/ozone_2009_california.csv")
+o3_ca_10 <- read.csv("./Raw/ozone_2010_california.csv")
+o3_ca_15 <- read.csv("./Raw/ozone_2015_california.csv")
+
+bay_o3_00 <- 
+  o3_ca_00 %>%
+  filter(COUNTY == "Alameda" | 
+                   COUNTY == "Contra Costa" |
+                   COUNTY == "Marin" |
+                   COUNTY == "Napa" |
+                   COUNTY == "San Francisco" |
+                   COUNTY == "San Mateo" |
+                   COUNTY == "Santa Clara" |
+                   COUNTY == "Solano" | 
+                   COUNTY == "Sonoma") %>% 
+  select(Date, Site.ID, Daily.Max.8.hour.Ozone.Concentration, UNITS, COUNTY)
+bay_o3_00$Date <- as.Date(bay_o3_00$Date, format = "%m/%d/%Y")
+bay_o3_00 <- mutate(bay_o3_00, month = month(as.Date(bay_o3_00$Date, "%Y-%m-%d")))
+bay_o3_00 <- mutate(bay_o3_00, year = year(as.Date(bay_o3_00$Date, "%Y-%m-%d")))
+bay_o3_00$year <- as.factor(bay_o3_00$year)  
+
+bay_o3_05 <- 
+  o3_ca_05 %>%
+  filter(COUNTY == "Alameda" | 
+                   COUNTY == "Contra Costa" |
+                   COUNTY == "Marin" |
+                   COUNTY == "Napa" |
+                   COUNTY == "San Francisco" |
+                   COUNTY == "San Mateo" |
+                   COUNTY == "Santa Clara" |
+                   COUNTY == "Solano" | 
+                   COUNTY == "Sonoma") %>% 
+  select(Date, Site.ID, Daily.Max.8.hour.Ozone.Concentration, UNITS, COUNTY)
+bay_o3_05$Date <- as.Date(bay_o3_05$Date, format = "%m/%d/%Y")
+bay_o3_05 <- mutate(bay_o3_05, month = month(as.Date(bay_o3_05$Date, "%Y-%m-%d")))
+bay_o3_05 <- mutate(bay_o3_05, year = year(as.Date(bay_o3_05$Date, "%Y-%m-%d")))
+bay_o3_05$year <- as.factor(bay_o3_05$year)  
+
+
+bay_o3_10 <- 
+  o3_ca_10 %>%
+  filter(COUNTY == "Alameda" | 
+                   COUNTY == "Contra Costa" |
+                   COUNTY == "Marin" |
+                   COUNTY == "Napa" |
+                   COUNTY == "San Francisco" |
+                   COUNTY == "San Mateo" |
+                   COUNTY == "Santa Clara" |
+                   COUNTY == "Solano" | 
+                   COUNTY == "Sonoma") %>% 
+  select(Date, Site.ID, Daily.Max.8.hour.Ozone.Concentration, UNITS, COUNTY)
+bay_o3_10$Date <- as.Date(bay_o3_10$Date, format = "%m/%d/%Y")
+bay_o3_10 <- mutate(bay_o3_10, month = month(as.Date(bay_o3_10$Date, "%Y-%m-%d")))
+bay_o3_10 <- mutate(bay_o3_10, year = year(as.Date(bay_o3_10$Date, "%Y-%m-%d")))
+bay_o3_10$year <- as.factor(bay_o3_10$year)
+
+bay_o3_15 <- 
+  o3_ca_15 %>%
+  filter(COUNTY == "Alameda" | 
+                   COUNTY == "Contra Costa" |
+                   COUNTY == "Marin" |
+                   COUNTY == "Napa" |
+                   COUNTY == "San Francisco" |
+                   COUNTY == "San Mateo" |
+                   COUNTY == "Santa Clara" |
+                   COUNTY == "Solano" | 
+                   COUNTY == "Sonoma") %>% 
+  select(Date, Site.ID, Daily.Max.8.hour.Ozone.Concentration, UNITS, COUNTY)
+bay_o3_15$Date <- as.Date(bay_o3_15$Date, format = "%m/%d/%Y")
+bay_o3_15 <- mutate(bay_o3_15, month = month(as.Date(bay_o3_15$Date, "%Y-%m-%d")))
+bay_o3_15 <- mutate(bay_o3_15, year = year(as.Date(bay_o3_15$Date, "%Y-%m-%d")))
+bay_o3_15$year <- as.factor(bay_o3_15$year)
+
+
+#join the 2000 and 2010 data
+bay_0010 <- full_join(bay_o3_00, bay_o3_10)
+
+#join the 2000, 2005 and 2010 data
+bay_o3 <- full_join(bay_0010, bay_o3_05)
+
+# join the 2000 to 2015 four year data
+bay_o3_4y <- full_join(bay_o3, bay_o3_15)
+
+# explore the plot of the 2000&2010 table
+p_bay_0010 <- ggplot(bay_0010) +
+  geom_point(aes(x=month, y=Daily.Max.8.hour.Ozone.Concentration, color = year))
+print(p_bay_0010)
+
+# explore the plot of full join table for 4 years
+p_bay_o3_4year <- ggplot(bay_o3_4y) +
+  geom_point(aes(x=month, y=Daily.Max.8.hour.Ozone.Concentration, color = year))
+print(p_bay_o3_4year)
+
+# bartlett test
+bartlett.test(bay_o3$Daily.Max.8.hour.Ozone.Concentration ~ bay_o3$year)
+
+# conduct an ANOVA test to see if there's a significant difference between 2000 and 2010
+o3_anova <- lm(bay_o3_4y$Daily.Max.8.hour.Ozone.Concentration ~ bay_o3_4y$year)
+summary(o3_anova)
+
+p_o3_anova <- ggplot(bay_o3_4y, aes(x = year, y = Daily.Max.8.hour.Ozone.Concentration)) +
+  geom_violin(draw_quantiles = 0.5)
+print(p_o3_anova)
+
+```
+
+
+<Include text sections to accompany these R chunks to explain the reasoning behind your workflow, and the rationale for your approach.>
+
+
+\newpage
+
+# Analysis
+<Include R chunks for 3+ statistical tests (display code and output) and 3+ final visualization graphs (display graphs only).>
+
+<Include text sections to accompany these R chunks to explain the reasoning behind your workflow, rationale for your approach, and the justification of meeting or failing to meet assumptions of tests.>
+
+
+\newpage
+
+# Summary and Conclusions
+<Summarize your major findings from your analyses. What conclusions do you draw from your findings? Make sure to apply this to a broader application for the research question you have answered.>
+
+
+

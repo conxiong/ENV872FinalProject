@@ -1,0 +1,460 @@
+---
+output: 
+  pdf_document:
+    keep_tex: yes
+    fig_caption: yes
+    number_sections: yes
+geometry: margin=2.54cm
+title: Experiment Title
+subtitle: Web address for GitHub repository
+author: Your Name
+abstract: "Experimental overview. This section should be no longer than 250 words."
+fontsize: 12pt
+mainfont: Times New Roman
+---
+
+<Information in these brackets are used for annotating the RMarkdown file. They will not appear in the final version of the PDF document>
+
+\newpage
+\tableofcontents 
+\newpage
+\listoftables 
+\newpage
+\listoffigures 
+\newpage
+
+<Setup the global options for the R chunks in your document>
+
+<Note: set up autoreferencing for figures and tables in your document>
+
+```{r setup, include=FALSE}
+# Set your working directory
+setwd("C:/Users/Wanch/Desktop/ENVI 872 data/ENV872FinalProject")
+
+
+# Load your packages
+library("tidyverse")
+library("ggplot2")
+library("lubridate")
+library("trend")
+library("sf")
+library("leaflet")
+library("mapview")
+library("maptools")
+
+# Set your ggplot theme
+
+```
+
+
+# Research Question and Rationale
+
+<Paragraph detailing the rationale for your analysis. What is the significant application and/or interest in this topic? Connect to environmental topic(s)/challenge(s).>
+
+<>
+
+<Paragraph detailing your research question(s) and goals. What do you want to find out? Include a sentence (or a few) on the dataset you are using to answer this question - just enough to give your reader an idea of where you are going with the analysis.>
+
+3 research questions:
+1. Is there a sign of reduction in PM2.5 from 2001 to 2018 in the bay area(9 counties)? Is there change compare to 2001/is there a change comparing to the previous year gradually = is it getting better? Does it reflect the change in California state requirement for PM2.5 standard?
+2. Just looking at county Santa Clara, do a time series analysis and see if there's a trend and if there's any point of change? I chose Santa Clara because it's the most populous county
+3. Is there a difference among the 9 counties? Do they have big difference in terms of air pollution?
+
+4. generate the mean for the year 2001, and mean for the year 2018 for all 9 counties. And display it on maps as fill gradient
+
+\newpage
+
+# Dataset Information
+
+<Information on how the dataset for this analysis were collected, the data contained in the dataset, and any important pieces of information that are relevant to your analyses. This section should contain much of same information as the README file for the dataset but formatted in a way that is more narrative.>
+
+<Add a table that summarizes your data structure. This table can be made in markdown text or inserted as a `kable` function in an R chunk. If the latter, do not include the code used to generate your table.>
+
+\newpage
+
+# Exploratory Data Analysis and Wrangling
+
+<Include R chunks for 5+ lines of summary code (display code and output), 3+ exploratory graphs (display graphs only), and any wrangling you do to your dataset(s).> 
+
+```{r, fig.height = 5.5, fig.width = 9}
+
+pm_ca_99 <- read.csv("./Raw/pm_1999_ca.csv")
+pm_ca_00 <- read.csv("./Raw/pm_2000_ca.csv")
+pm_ca_01 <- read.csv("./Raw/pm_2001_ca.csv")
+pm_ca_02 <- read.csv("./Raw/pm_2002_ca.csv")
+pm_ca_03 <- read.csv("./Raw/pm_2003_ca.csv")
+pm_ca_04 <- read.csv("./Raw/pm_2004_ca.csv")
+pm_ca_05 <- read.csv("./Raw/pm_2005_ca.csv")
+pm_ca_06 <- read.csv("./Raw/pm_2006_ca.csv")
+pm_ca_07 <- read.csv("./Raw/pm_2007_ca.csv")
+pm_ca_08 <- read.csv("./Raw/pm_2008_ca.csv")
+pm_ca_09 <- read.csv("./Raw/pm_2009_ca.csv")
+pm_ca_10 <- read.csv("./Raw/pm_2010_ca.csv")
+pm_ca_11 <- read.csv("./Raw/pm_2011_ca.csv")
+pm_ca_12 <- read.csv("./Raw/pm_2012_ca.csv")
+pm_ca_13 <- read.csv("./Raw/pm_2013_ca.csv")
+pm_ca_14 <- read.csv("./Raw/pm_2014_ca.csv")
+pm_ca_15 <- read.csv("./Raw/pm_2015_ca.csv")
+pm_ca_16 <- read.csv("./Raw/pm_2016_ca.csv")
+pm_ca_17 <- read.csv("./Raw/pm_2017_ca.csv")
+pm_ca_18 <- read.csv("./Raw/pm_2018_ca.csv")
+
+ca_pm_99_18 <- do.call(rbind, list(pm_ca_99, pm_ca_00, pm_ca_01, pm_ca_02, pm_ca_03, pm_ca_04, pm_ca_05, pm_ca_06, pm_ca_07, pm_ca_08, pm_ca_09, pm_ca_10, pm_ca_11, pm_ca_12, pm_ca_13, pm_ca_14, pm_ca_15, pm_ca_16, pm_ca_17, pm_ca_18))
+
+bay_pm_99_18 <-
+  ca_pm_99_18 %>%
+  filter(COUNTY == "Alameda" |
+                   COUNTY == "Contra Costa" |
+                   COUNTY == "Marin" |
+                   COUNTY == "Napa" |
+                   COUNTY == "San Francisco" |
+                   COUNTY == "San Mateo" |
+                   COUNTY == "Santa Clara" |
+                   COUNTY == "Solano" |
+                   COUNTY == "Sonoma") %>%
+  select(Date, Site.ID, Daily.Mean.PM2.5.Concentration, UNITS, DAILY_AQI_VALUE, COUNTY, SITE_LATITUDE, SITE_LONGITUDE)
+bay_pm_99_18 $Date <- as.Date(bay_pm_99_18 $Date, format = "%m/%d/%Y")
+bay_pm_99_18  <- mutate(bay_pm_99_18 , month = month(as.Date(bay_pm_99_18 $Date, "%Y-%m-%d")))
+bay_pm_99_18  <- mutate(bay_pm_99_18 , year = year(as.Date(bay_pm_99_18 $Date, "%Y-%m-%d")))
+bay_pm_99_18 $year <- as.factor(bay_pm_99_18 $year)
+
+# Let's have a first look at the data and see if there is anything worth investigating
+plot.explore <- ggplot(bay_pm_99_18, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = year)) +
+  geom_point() +
+  scale_color_viridis_d()+
+  theme_classic()
+print(plot.explore)
+
+# By first sight, it looks like 2017 and 2018 have some extreme data out of the normal range. Therefore, for the purpose of this project, data from 2017 and 2018 will be excluded for the most part except when California wild fire events were considered for the last research question.
+
+
+```
+
+
+<Include text sections to accompany these R chunks to explain the reasoning behind your workflow, and the rationale for your approach.>
+
+
+\newpage
+
+# Analysis
+<Include R chunks for 3+ statistical tests (display code and output) and 3+ final visualization graphs (display graphs only).>
+
+<Include text sections to accompany these R chunks to explain the reasoning behind your workflow, rationale for your approach, and the justification of meeting or failing to meet assumptions of tests.>
+
+```{r, fig.height = 4.7, fig.width = 8}
+
+# California endorsed ...
+# Divide the data according to the time when the state started to actively cut down PM2.5 pollution in the air
+before_reg <- filter(bay_pm_99_18, year == 1999 | year == 2000 | year == 2001 | year == 2002)
+
+after_reg <- filter(bay_pm_99_18, year != 1999 & year != 2000 & year != 2001 & year != 2002 & year != 2017 & year != 2018)
+
+
+# Perform a t test to see whether there is:
+#1) a significant change in PM2.5 concentration across the bay area before and after the state started regulating PM2.5;
+#2) a decrease in the PM2.5 concentration since the state endorsed the regulation
+t.test(before_reg$Daily.Mean.PM2.5.Concentration, after_reg$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+bay_pm_99_16 <- bay_pm_99_16 %>%
+  mutate(beforeorafter = factor(case_when(year == 1999 | year == 2000 | year == 2001 & year != 2002 ~ "before state regulation", year != 1999 & year != 2000 & year != 2001 & year != 2017 & year != 2018 ~ "after state regulation"), levels = c("before state regulation", "after state regulation")))
+
+
+# Make a violin plot to show the difference of before- and after-regulation
+plot.t.test <- ggplot(bay_pm_99_16, aes(x = beforeorafter, y = Daily.Mean.PM2.5.Concentration)) +
+  geom_violin(draw_quantiles = 0.5) +
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  theme_classic()
+print(plot.t.test)
+
+
+# Make a point graph to show an overall change in PM2.5 concentration before the regulation and after the regulation
+plot.99_16 <- ggplot(bay_pm_99_16, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = beforeorafter)) +
+  geom_boxplot() +
+  scale_color_brewer(palette = "Set1") +
+  labs(color = "California Implemented State Regulation for PM2.5 in 2003") +
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  theme_classic() +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+print(plot.99_16 + ggtitle("Mean PM2.5 Across 9 Bay Area Counties"))
+
+```
+
+
+```{r}
+
+# Perform a t-test on each bay area county to see whether they have had significant change in PM2.5 since 2002, and whether the mean PM2.5 is decreasing.
+
+# Test Alameda County to see if it has reduced in PM2.5 since 2002
+Alameda.be <- before_reg %>%
+  filter(COUNTY == "Alameda")
+Alameda.af <- after_reg %>%
+  filter(COUNTY == "Alameda")
+     
+t.test(Alameda.be$Daily.Mean.PM2.5.Concentration, Alameda.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+ 
+# Perform a T Test on Contra Costa County to see if it has reduced in PM2.5 since 2002
+ContraCosta.be <- before_reg %>%
+  filter(COUNTY == "Contra Costa")
+ContraCosta.af <- after_reg %>%
+  filter(COUNTY ==  "Contra Costa")
+     
+t.test(ContraCosta.be$Daily.Mean.PM2.5.Concentration, ContraCosta.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")   
+# Perform a T Test on Marin County to see if it has reduced in PM2.5 since 2002
+Marin.be <- before_reg %>%
+  filter(COUNTY == "Marin")
+Marin.af <- after_reg %>%
+  filter(COUNTY ==  "Marin")
+     
+t.test(Marin.be$Daily.Mean.PM2.5.Concentration, Marin.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Through the data wrangling process, it shows that Napa didn't have air monitoring data for PM2.5 until 2007, therefore this comparison exludes Napa County
+Napa.be <- before_reg %>%
+  filter(COUNTY == "Napa")
+
+# Perform a T Test on San Francisco County to see if it has reduced in PM2.5 since 2002
+sf.be <- before_reg %>%
+  filter(COUNTY == "San Francisco")
+sf.af <- after_reg %>%
+  filter(COUNTY ==  "San Francisco")
+     
+t.test(sf.be$Daily.Mean.PM2.5.Concentration, sf.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Perform a T Test on San Mateo County to see if it has reduced in PM2.5 since 2002
+sanm.be <- before_reg %>%
+  filter(COUNTY == "San Mateo")
+sanm.af <- after_reg %>%
+  filter(COUNTY ==  "San Mateo")
+     
+t.test(sanm.be$Daily.Mean.PM2.5.Concentration, sanm.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Perform a T Test on Santa Clara County to see if it has reduced in PM2.5 since 2002
+sc.be <- before_reg %>%
+  filter(COUNTY == "Santa Clara")
+sc.af <- after_reg %>%
+  filter(COUNTY ==  "Santa Clara")
+     
+t.test(sc.be$Daily.Mean.PM2.5.Concentration, sc.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Perform a T Test on Solano County to see if it has reduced in PM2.5 since 2002
+solano.be <- before_reg %>%
+  filter(COUNTY == "Solano")
+solano.af <- after_reg %>%
+  filter(COUNTY ==  "Solano")
+     
+t.test(solano.be$Daily.Mean.PM2.5.Concentration, solano.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Perform a T Test on Sonoma County to see if it has reduced in PM2.5 since 2002
+Sonoma.be <- before_reg %>%
+  filter(COUNTY == "Sonoma")
+Sonoma.af <- after_reg %>%
+  filter(COUNTY ==  "Sonoma")
+     
+t.test(Sonoma.be$Daily.Mean.PM2.5.Concentration, Sonoma.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+
+# Since Napa is excluded in the statistical analysis, the data needs to be wrangled to exclude it to create the ggplot  
+nonapa.bay_pm_99_16 <- bay_pm_99_16 %>%
+  filter(COUNTY != "Napa")
+
+plot.9county.beaf <- ggplot(nonapa.bay_pm_99_16, aes(x = COUNTY, y = Daily.Mean.PM2.5.Concentration, color = beforeorafter)) +
+  geom_boxplot() +
+  scale_color_brewer(palette = "Set1") +
+  xlab("County Name") +
+  labs(color = "California Implemented State Regulation for PM2.5 in 2003") +
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  theme_classic() +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
+print(plot.9county.beaf + ggtitle("PM2.5 Comparison Before and After AAQS for 8 Bay Area Counties"))
+
+# Read in the California County shapefile
+bay_county <- st_read("./SpatialData/CA_Counties_TIGER2016.shp") %>%
+  filter(NAME == "Alameda" |
+                  NAME == "Contra Costa" |
+                   NAME == "Marin" |
+                   NAME == "Napa" |
+                   NAME == "San Francisco" |
+                   NAME == "San Mateo" |
+                   NAME == "Santa Clara" |
+                   NAME == "Solano" |
+                   NAME == "Sonoma")
+st_crs(bay_county)
+bay_county_utm <- st_transform(bay_county, crs = 26910)
+
+# Calculate the mean PPM2.5 for each county before and after the regulation, and prepare the data to be converted into spatial data
+before_reg_avg <- before_reg %>%
+  group_by(COUNTY) %>% #, SITE_LATITUDE, SITE_LONGITUDE) %>%
+  summarise(meanPM = mean(Daily.Mean.PM2.5.Concentration)) %>%
+  mutate(Latitude = c(37.535833, 37.936013, 38.122978522, 37.765946, 37.482934, 37.3062, 38.102507, 38.443503)) %>%
+  mutate(Longitude = c(-121.961823, -122.026154, -122.909439692, -122.399044, -122.20337, -121.84885, -122.237976, -122.710169))
+
+after_reg_avg <- after_reg %>%
+  group_by(COUNTY) %>% #, SITE_LATITUDE, SITE_LONGITUDE) %>%
+  summarise(meanPM = mean(Daily.Mean.PM2.5.Concentration)) %>%
+  mutate(Latitude = c(37.68753, 37.936013, 38.122978522, 37.765946, 37.482934, 37.3062, 38.102507, 38.443503,  38.310942)) %>%
+  mutate(Longitude = c(-121.784217, -122.026154, -122.909439692, -122.399044, -122.20337, -121.84885, -122.237976, -122.710169, -122.296189))
+
+# Convert the before- and after-regulation dataframe into a sf dataframe, and transform them to NAD83 11N coordinate system
+before_reg_sf <- st_as_sf(before_reg_avg, coords = c("Longitude","Latitude"), crs = 4326)
+before_reg_sf_utm <- st_transform(before_reg_sf, crs = 26910)
+
+after_reg_sf <- st_as_sf(after_reg_avg, coords = c("Longitude","Latitude"), crs = 4326)
+after_reg_sf_utm <- st_transform(after_reg_sf, crs = 26910)
+
+# 
+
+join.county.pm.be <- st_join(before_reg_sf_utm, bay_county_utm, join = st_intersects)
+county.pm.be.dt <- st_drop_geometry(join.county.pm.be)
+bay_full.before <- left_join(county.pm.be.dt, bay_county_utm)
+
+join.county.pm.af <- st_join(after_reg_sf_utm, bay_county_utm, join = st_intersects)
+county.pm.af.dt <- st_drop_geometry(join.county.pm.af)
+bay_full.after <- left_join(county.pm.af.dt, bay_county_utm)
+
+mean(before_reg_avg$meanPM)
+
+map.pm25.before <- ggplot() +
+  geom_sf(data = bay_full.before, aes(fill = meanPM), color = "grey") +
+  scale_fill_gradient2(low = "lightskyblue", high = "red", midpoint = 12) +
+  geom_text() +
+  theme_bw()
+print(map.pm25.before)
+
+map.pm25.after <- ggplot(aes(label = COUNTY)) +
+  geom_sf(data = bay_full.after, aes(fill = meanPM), color = "grey") +
+  scale_fill_gradient2(low = "lightskyblue", high = "red", midpoint = 12) +
+  geom_text() +
+  theme_bw()
+print(map.pm25.after)
+
+
+
+```
+
+
+
+```{r, fig.height = 4.7, fig.width = 8}
+
+# Single out Santa Clara County; wrangle the data to just include data for Santa Clara County and from year 1999 to 2016.
+sc_pm_99_16 <- 
+  ca_pm_99_18 %>%
+  filter(COUNTY == "Santa Clara") %>%
+  select(Date, Site.ID, Daily.Mean.PM2.5.Concentration, UNITS, DAILY_AQI_VALUE, COUNTY)
+sc_pm_99_16$Date <- as.Date(sc_pm_99_16$Date, format = "%m/%d/%Y")
+sc_pm_99_16 <- sc_pm_99_16 %>%
+  mutate(month = month(as.Date(sc_pm_99_16$Date, "%Y-%m-%d"))) %>%
+  mutate(year = year(as.Date(sc_pm_99_16$Date, "%Y-%m-%d")))
+sc_pm_99_16$year <- as.factor(sc_pm_99_16$year)
+sc_pm_99_16 <- sc_pm_99_16 %>%
+  filter(year != 2017 & year != 2018)
+
+
+# Perform the time series analysis on Santa Clara County
+mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration)
+
+# Mann-Kendall trend test
+# 
+# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration
+# z = -27.286, n = 13769, p-value < 2.2e-16
+# alternative hypothesis: true S is not equal to 0
+# sample estimates:
+#             S          varS           tau 
+# -1.469579e+07  2.900619e+11 -1.555172e-01 
+# The result shows that there is a significant negative trend over the time, indicating that PM2.5 is going down over the time span.
+
+# Perform a pettitt test to detect where is the changing point in the data
+pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration)
+
+# Pettitt's test for single change-point detection
+# 
+# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration
+# U* = 11805000, p-value < 2.2e-16
+# alternative hypothesis: two.sided
+# sample estimates:
+# probable change point at time K 
+#                            5463  
+
+# The result shows that it's at location 5463, which is on 2009-02-04
+
+# Perform another pettitt test to see whether there is any point of significant change before this date and after this date. And we want to see whether trend is going up or down.
+mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463])
+
+# Mann-Kendall trend test
+# 
+# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463]
+# z = -10.332, n = 5463, p-value < 2.2e-16
+# alternative hypothesis: true S is not equal to 0
+# sample estimates:
+#             S          varS           tau 
+# -1.390766e+06  1.811988e+10 -9.344646e-02 
+# The result shows an overall negative trend in concentration of PM2.5 from 1999 to 2009-02-04.
+
+
+pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463])
+# The result shows that at location 2109, there is a significant point of change; before this date, the overall trend is negative.
+
+mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:2108])
+
+# The result shows that the trend of ambient PM2.5 is decreasing as it approaches position 2108, which equals to Feb 1, 2003. Run the pettitt test again to see if there is any significant point of change before Feb 1, 2003 and after 2003.
+
+pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:2108])
+
+# The result shows that at location 350, which equals to Jan 12, 2000, is a possible point of change; however, this date falls out of range of our interest. Therefore, since the state regulation was effective in 2003, the first significant change of point occurs on Feb 1, 2003. 
+
+
+# plot the data in santa clara county
+plot.pm.sc <- ggplot(sc_pm_99_16, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = year)) +
+  geom_point() +
+  scale_color_viridis_d() +
+  geom_hline(yintercept = 12, linetype = "dashed", color = "red") +
+  annotate(geom = "text", x= 10, y =10, label = "PM2.5 Cap = 12 ug/m3", color = "red", size = 3.5) +
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  scale_x_continuous(breaks = c(1:12)) +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+print(plot.pm.sc + ggtitle("PM2.5 Concentration Trend from 1999 to 2016 in Santa Clara County"))
+
+
+
+```
+
+
+```{r}
+
+# Prepare the data to look at the PM2.5 concentration for Solano County in 2018
+solano_pm_18 <- 
+  bay_pm_99_18 %>%
+  filter(year == 2018) %>%
+  filter(COUNTY == "Solano") %>%
+  select(Date, Daily.Mean.PM2.5.Concentration)
+solano_pm_18$Daily.Mean.PM2.5.Concentration <- as.numeric(solano_pm_18$Daily.Mean.PM2.5.Concentration)
+solano_pm_18 <- mutate(solano_pm_18, month = month(as.Date(solano_pm_18$Date, "%Y-%m-%d"))) 
+solano_pm_18$month <- as.factor(solano_pm_18$month)
+
+# so_timeseries <- ts(solano_pm_18$Daily.Mean.PM2.5.Concentration, start = c(2018, 1), frequency = 12)
+# 
+# so_time_diff <- smk.test(so_timeseries)
+# so_time_diff
+
+bartlett.test(solano_pm_18$Daily.Mean.PM2.5.Concentration ~ solano_pm_18$month)
+
+PM2.5.anova <- lm(solano_pm_18$Daily.Mean.PM2.5.Concentration ~ solano_pm_18$month)
+summary(PM2.5.anova)
+
+plot.solano.fire18 <- ggplot(solano_pm_18, aes(x = month, y = Daily.Mean.PM2.5.Concentration)) +
+  geom_point(color = "forestgreen", alpha = 0.8) +
+  annotate(geom = "text", x = 10.5, y = 185, label = "Fire 'Nurse' (Nov 8, 2018)", color = "darkorange", fontface = "bold") +
+    ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  theme_classic() +
+  ggtitle("Overview of PM2.5 Concentration in 2018, Solano County") +
+  theme(plot.title = element_text(hjust = 0.5))
+print(plot.solano.fire18)
+
+
+```
+
+\newpage
+
+# Summary and Conclusions
+<Summarize your major findings from your analyses. What conclusions do you draw from your findings? Make sure to apply this to a broader application for the research question you have answered.>
+
+
+
