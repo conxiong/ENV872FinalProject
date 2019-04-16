@@ -3,12 +3,9 @@ title: Policy Analysis of California Clean Air Act on the Reduction of PM2.5 in 
   Area Counties
 author: "Wanchen Xiong"
 fontsize: 12pt
-output:
-  bookdown::pdf_document2: default
-  bookdown::pdf_book: null
 mainfont: Times New Roman
 geometry: margin=2.54cm
-subtitle: Web address for GitHub repository
+subtitle: https://github.com/conxiong/ENV872FinalProject
 abstract: This data analysis aims to investigate the effectiveness of the implementation
   of PM2.5 regulation, which started to be effective in 2003 in California, in the
   Bay Area. Data from EPA public PM2.5 monitoring were prepared to perform statistical
@@ -17,7 +14,24 @@ abstract: This data analysis aims to investigate the effectiveness of the implem
   the point of change in ambient PM2.5 level over time, and the ability of air monitoring
   data to reflect natural disturbance. Overall, this analysis showed that the regulation
   was successful based on the data.
+output:
+  bookdown::pdf_document2: 
+    toc: true
+    number_sections: true
+    includes:  
+      in_header: figure.tex
+  bookdown::pdf_book: null
+header-includes:
+   - \usepackage{floatrow}
+   - \floatsetup[figure]{capposition=top}
+
 ---
+
+\newpage
+\newpage
+\tableofcontents 
+\listoffigures
+\newpage
 
 <Information in these brackets are used for annotating the RMarkdown file. They will not appear in the final version of the PDF document>
 
@@ -38,6 +52,7 @@ library("mapview")
 library("maptools")
 library("knitr")
 library("bookdown")
+library("float")
 
 # Set your ggplot theme
 mytheme <- theme_classic()
@@ -45,11 +60,6 @@ theme_set(mytheme)
 
 ```
 
-\newpage
-\tableofcontents 
-\newpage
-\listoffigures
-\newpage
 
 # Research Question and Rationale
 
@@ -124,7 +134,8 @@ After pulling in all the PM2.5 monitoring data from 1999 to 2018, a data wrangli
 
 ``` {r wrangle}
 # wrangle this new dataframe to only include 9 bay area counties
-# Make sure date is in the right format and recognized by R. Save the processed data to the folder.
+# Make sure date is in the right format and recognized by R. 
+# Save the processed data to the folder.
 
 bay_pm_99_18 <-
   ca_pm_99_18 %>%
@@ -152,7 +163,8 @@ write.csv(bay_pm_99_18, file = "./Processed/bay_pm25_99to18.csv")
 ```
 
 ```{r displaydata, results='hide'}
-# Display the data's structure, dimension, columns and have a look at first/last several columns
+# Display the data's structure, dimension, columns and have a look 
+# at first/last several columns
 str(bay_pm_99_18)
 
 dim(bay_pm_99_18)
@@ -170,7 +182,7 @@ After data is wrangled, a clean dataframe that includes the necessary informatio
 
 Therefore, several plots were produced to look at the patterns of the concentration of PM2.5 by county and by year to identify potential interesting factors that are worth exploring in addition to the research goals.
 
-First, figure 1 is produced to look at each of the 9 bay area counties and their respective PM2.5 concentration level over 1999-2018. 
+First, figure \@ref(fig:explore1) is produced to look at each of the 9 bay area counties and their respective PM2.5 concentration level over 1999-2018. 
 
 Then, figure \@ref(fig:explore2) is generated to identify if there is seasonal effects that influence ambient PM2.5.
 
@@ -188,7 +200,7 @@ Figure \@ref(fig:explore3) is generated to explore which county has the best and
 
 <Include text sections to accompany these R chunks to explain the reasoning behind your workflow, rationale for your approach, and the justification of meeting or failing to meet assumptions of tests.>
 
-## Research Question 1: Is PM2.5 Reducing in Bay Area ?
+## Research Question 1: How Has PM2.5 Been Changing in Bay Area ?
 
 Since California implemented the PM2.5 standard in 2003. The data before 2003 will be referred as "before the state regulation", whereas data after 2003 will be referred as "after the state regulation".
 
@@ -233,7 +245,7 @@ Figure \@ref(fig:overallbay) displays the an overall change in PM2.5 concentrati
 \newpage
 
 ## Research Question 2: How Does Each County Experience Change in PM2.5 ?
-
+### Statistical Analysis
 After running the statistical test on all of the bay area counties as a whole, a signficant reduction in PM2.5 is observed. To further explore this trend, a T-test is performed to see whether every county in bay area is reducing its PM2.5. Since Napa county does not have data before the regulation, it is excluded from this analysis. The following code is a T-test performed on Alameda County.
 
 ```{r, results='hide'}
@@ -319,8 +331,8 @@ nonapa.bay_pm_99_16 <- bay_pm_99_16.beaf %>%
 
 County Name         |         Results
 --------------------|---------------------------------------------------------
-Alameda             | Significant reduction, mean differnce = -3.89 (p<0.0001)
-Contra Costa        | Significant reduction, mean differnce = -4.30 (p<0.0001)
+Alameda             | Significant reduction, mean difference = -3.89 (p<0.0001)
+Contra Costa        | Significant reduction, mean difference = -4.30 (p<0.0001)
 Marin               | No significant change, mean difference = +1.38 (p = 1)
 San Francisco       | Singificant reduction, mean difference = -4.16 (p<0.0001)
 San Mateo           | Significant reduction, mean difference = -2.49 (p<0.0001)
@@ -333,7 +345,7 @@ As seen in figure \@ref(fig:change), every county except Marin county shows a si
 
 \newpage
 
-## The Spatial Display of the Results of the Regulation
+### The Spatial Display of the Results of the Regulation
 
 ```{r, include=FALSE}
 # Read in the California County shapefile
@@ -388,8 +400,9 @@ Figure \@ref(fig:beforereg) and figure \@ref(fig:afterreg) shows the level of ai
 
 \newpage
 
-## Research Question 3: Is There a Point of Change in the Data to Reflect the Effectiveness of the Regulation? A Close Look at Santa Clara County.
+## Research Question 3: Is There a Point of Change in the Data to Reflect the Effectiveness of the Regulation? 
 
+### A Close Look at Santa Clara County.
 
 ```{r, echo=FALSE, results='hide', fig.height = 4.7, fig.width = 8}
 # Single out Santa Clara County; wrangle the data to just include data for Santa Clara County and from year 1999 to 2016.
@@ -444,7 +457,9 @@ Figure \@ref(fig:sctrend) presents the change in the ambient PM2.5 concentration
 
 \newpage
 
-## Research Question 4: Does EPA Air Quality Monitoring Data Capture Air Pollution Disturbance like Wildfire? A Close Look at Solano County in 2018.
+## Research Question 4: Does EPA Air Quality Monitoring Data Capture Air Pollution Disturbance like Wildfire? 
+
+### A Close Look at Solano County in 2018.
 
 EPA air quality data are used by policymakers, researchers, and environmental management professionals frequently. Therefore, it is important that these data accurately reflect what's happening in the environment. PM2.5 is a large component of the pollutants emitted from fire. This section explores the PM2.5 data for Solano County in 2018 to see if it correctly captures the wildfires events happened in this county on August 10, Oct 7, and November 8, 2018. 
 
@@ -476,7 +491,7 @@ However, this test does not conclude that the data are not accurate. There are d
 
 \newpage
 # Figures
-\
+
 
 ```{r explore1, fig.cap="Data Exploration: 9 Bay Area Counties and PM2.5", echo=FALSE, fig.height = 6, fig.width = 8}
 # Let's first have an exploration at the data to look at the county and their respective PM2.5
