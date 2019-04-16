@@ -1,16 +1,22 @@
 ---
-output: 
-  pdf_document:
-    keep_tex: yes
-    fig_caption: yes
-    number_sections: yes
-geometry: margin=2.54cm
-title: Policy Analysis of California Clean Air Act on the Reduction of PM2.5 in Bay Area Counties
-subtitle: Web address for GitHub repository
-author: Wanchen Xiong
-abstract: "This data analysis aims to investigate the effectiveness of the implementation of PM2.5 regulation, which started to be effective in 2003 in California, in the Bay Area. Data from EPA public PM2.5 monitoring were prepared to perform statistical analysis including T-test, ANOVA, and time-series analysis. The project addressed four questions regarding the overall trend of PM2.5 level, comparisons among counties, the point of change in ambient PM2.5 level over time, and the ability of air monitoring data to reflect natural disturbance. Overall, this analysis showed that the regulation was successful based on the data."
+title: Policy Analysis of California Clean Air Act on the Reduction of PM2.5 in Bay
+  Area Counties
+author: "Wanchen Xiong"
 fontsize: 12pt
+output:
+  bookdown::pdf_document2: default
+  bookdown::pdf_book: null
 mainfont: Times New Roman
+geometry: margin=2.54cm
+subtitle: Web address for GitHub repository
+abstract: This data analysis aims to investigate the effectiveness of the implementation
+  of PM2.5 regulation, which started to be effective in 2003 in California, in the
+  Bay Area. Data from EPA public PM2.5 monitoring were prepared to perform statistical
+  analysis including T-test, ANOVA, and time-series analysis. The project addressed
+  four questions regarding the overall trend of PM2.5 level, comparisons among counties,
+  the point of change in ambient PM2.5 level over time, and the ability of air monitoring
+  data to reflect natural disturbance. Overall, this analysis showed that the regulation
+  was successful based on the data.
 ---
 
 <Information in these brackets are used for annotating the RMarkdown file. They will not appear in the final version of the PDF document>
@@ -35,7 +41,6 @@ library("bookdown")
 
 # Set your ggplot theme
 mytheme <- theme_classic()
-
 theme_set(mytheme)
 
 ```
@@ -167,11 +172,11 @@ Therefore, several plots were produced to look at the patterns of the concentrat
 
 First, figure 1 is produced to look at each of the 9 bay area counties and their respective PM2.5 concentration level over 1999-2018. 
 
-Then, figure 2 is generated to identify if there is seasonal effects that influence ambient PM2.5.
+Then, figure \@ref(fig:explore2) is generated to identify if there is seasonal effects that influence ambient PM2.5.
 
 After looking at the first and second exploration plot, it looks like 2017 and 2018 have some extreme data out of the normal range. Therefore, for the purpose of this project, data from 2017 and 2018 will be excluded for the most part except when California wild fire events were considered for the last research question.
 
-Figure 3 is generated to explore which county has the best and worst air pollution based on PM2.5 concentration.
+Figure \@ref(fig:explore3) is generated to explore which county has the best and worst air pollution based on PM2.5 concentration.
 
 
 <Include text sections to accompany these R chunks to explain the reasoning behind your workflow, and the rationale for your approach.>
@@ -221,9 +226,9 @@ bay_pm_99_16.beaf <- bay_pm_99_18 %>%
 bay_pm_99_16.beaf$month <- as.factor(bay_pm_99_16.beaf$month)
 ```
 
-Figure 4 is a graphic presentation displaying the result of the T-test.
+Figure \@ref(fig:ttest) is a graphic presentation displaying the result of the T-test.
 
-Figure 5 displays the an overall change in PM2.5 concentration before the regulation and after the regulation.
+Figure \@ref(fig:overallbay) displays the an overall change in PM2.5 concentration before the regulation and after the regulation.
 
 \newpage
 
@@ -324,7 +329,7 @@ Solano              | Significant reduction, mean difference = -3.60 (p<0.0001)
 Sonoma              | Significant reduction, mean difference = -3.37 (p<0.0001)
 
 
-As seen in figure 6, every county except Marin county shows a signficant reduction in PM2.5 concentration since the regulation. Even though Marin County seems to show a non-significant increase in PM2.5, Marin County is already at the lower end of PM2.5 level to begin with, comparing to the rest of the counties.
+As seen in figure \@ref(fig:change), every county except Marin county shows a signficant reduction in PM2.5 concentration since the regulation. Even though Marin County seems to show a non-significant increase in PM2.5, Marin County is already at the lower end of PM2.5 level to begin with, comparing to the rest of the counties.
 
 \newpage
 
@@ -378,7 +383,7 @@ mean(before_reg_avg$meanPM)
 
 ```
 
-Figure 7 and figure 8 shows the level of air pollution regarding PM2.5 concentration in a spatial display. The color is calibrated at the regulation standard, PM2.5 = 12 micrograms/cubic meter. The more orange the county is, the higher the PM2.5 concentration is. The more blue the county is, the lower the PM2.5 concentration is. The majority of PM2.5 high level seems to concentrate in the eastern part of the Bay Area, where it is mostly inland and urban environment.
+Figure \@ref(fig:beforereg) and figure \@ref(fig:afterreg) shows the level of air pollution regarding PM2.5 concentration in a spatial display. The color is calibrated at the regulation standard, PM2.5 = 12 micrograms/cubic meter. The more orange the county is, the higher the PM2.5 concentration is. The more blue the county is, the lower the PM2.5 concentration is. The majority of PM2.5 high level seems to concentrate in the eastern part of the Bay Area, where it is mostly inland and urban environment.
 
 
 \newpage
@@ -434,7 +439,7 @@ pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:2108])
 
 The result shows that the trend of ambient PM2.5 is a negative one as it approaches Feb 1, 2003. The pettitt test again to see if there is any significant point of change before Feb 1, 2003 and after 2003. The result shows that at location 350, which equals to Jan 12, 2000, is a possible point of change; however, this date falls out of range of our interest because we are only interested in the time after the regulation was implemented. Therefore, since the state regulation was effective in 2003, the first significant change of point occurs on Feb 1, 2003.
 
-Figure 9 presents the change in the ambient PM2.5 concentration, separated by months, since 1999 to 2016.
+Figure \@ref(fig:sctrend) presents the change in the ambient PM2.5 concentration, separated by months, since 1999 to 2016.
 
 
 \newpage
@@ -464,7 +469,7 @@ PM2.5.anova <- lm(solano_pm_18$Daily.Mean.PM2.5.Concentration
 summary(PM2.5.anova)
 ```
 
-The result shows that November's mean PM2.5 concentration is significantly different from the reference month (P < 0.0001). Therefore, the difference between month that has wildfire and the month that does not is only reflective of November, as shown in Figure 10. 
+The result shows that November's mean PM2.5 concentration is significantly different from the reference month (P < 0.0001). Therefore, the difference between month that has wildfire and the month that does not is only reflective of November, as shown in Figure \@ref(fig:solanofire). 
 
 However, this test does not conclude that the data are not accurate. There are days that are missing, especially during the second fire event, which half of month's data were missing. Therefore, this might lead to the result that the expected worse air pollution is not reflected in the data.
 
