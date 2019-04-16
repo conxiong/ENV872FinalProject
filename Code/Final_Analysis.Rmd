@@ -218,6 +218,7 @@ bay_pm_99_16.beaf <- bay_pm_99_18 %>%
   mutate(beforeorafter = factor(case_when(year == 1999 | year == 2000 | year == 2001 & year != 2002 ~ "before state regulation", year != 1999 & year != 2000 & year != 2001 & year != 2017 & year != 2018 ~ "after state regulation"), levels = c("before state regulation", "after state regulation"))) %>%
   filter(year != 2017 & year != 2018)
 
+bay_pm_99_16.beaf$month <- as.factor(bay_pm_99_16.beaf$month)
 ```
 
 Figure 4 is a graphic presentation displaying the result of the T-test.
@@ -472,7 +473,7 @@ However, this test does not conclude that the data are not accurate. There are d
 # Figures
 \
 
-```{r explore1, fig.cap="Data Exploration: 9 Bay Area Counties and PM2.5", echo=FALSE,fig.height = 5, fig.width = 8}
+```{r explore1, fig.cap="Data Exploration: 9 Bay Area Counties and PM2.5", echo=FALSE, fig.height = 6, fig.width = 8}
 # Let's first have an exploration at the data to look at the county and their respective PM2.5
 plot.explore1 <- ggplot(bay_pm_99_18, aes(x = COUNTY, y = Daily.Mean.PM2.5.Concentration, color = year)) +
   geom_point() +
@@ -511,14 +512,14 @@ plot.t.test <-
 print(plot.t.test)
 ```
 
-```{r overallbay, fig.cap = "Mean PM2.5 Across 9 Bay Area Counties", echo=FALSE, fig.height = 4.7, fig.width = 8}
+```{r overallbay, fig.cap = "Mean PM2.5 Across 9 Bay Area Counties by Month", echo=FALSE, fig.height = 4.7, fig.width = 8}
 # Make a point graph to show an overall change in PM2.5 concentration before the regulation and after the regulation
-plot.99_16 <- ggplot(bay_pm_99_16.beaf, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = beforeorafter)) +
+plot.99_16 <- ggplot(bay_pm_99_16.beaf, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color =  beforeorafter)) +
   geom_boxplot() +
   scale_color_brewer(palette = "Set1") +
   labs(color = "California Implemented State Regulation for PM2.5 in 2003") +
   ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
-  theme_classic() +
+  #scale_x_continuous(breaks = c(0:13)) +
   theme(legend.position = "top")
 print(plot.99_16)
 ```
@@ -579,7 +580,7 @@ print(plot.solano.fire18)
 
 \newpage
 # Summary and Conclusions
-
+\
 <Summarize your major findings from your analyses. What conclusions do you draw from your findings? Make sure to apply this to a broader application for the research question you have answered.>
 Policy interventions in air quality management have brought tremendous success nation-wide in the U.S. since Clean Air Act. In order to fully assess the benefits of these interventions, data analysis is necessary to make conclusions about the success of them. This research project serves to provide an in-depth policy analysis at a regional scale in Bay Area, California. This analysis covers the larger spectrum of the data by looking at 9 bay area counties as a whole. Also, individual county is compared before- and after- regulation. 
 
