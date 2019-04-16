@@ -36,9 +36,10 @@ library("leaflet")
 library("mapview")
 library("maptools")
 library("knitr")
+library("bookdown")
 
 # Set your ggplot theme
-mytheme <- theme_bw()
+mytheme <- theme_classic()
 
 theme_set(mytheme)
 
@@ -70,7 +71,9 @@ This analysis is developed into 4 research questions:
 
 <Add a table that summarizes your data structure. This table can be made in markdown text or inserted as a `kable` function in an R chunk. If the latter, do not include the code used to generate your table.>
 
-The air monitoring data for PM2.5 were collected from [here](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). PM2.5 data for California are available from 1999 to 2018. These data were archived by year. Each file included the daily maximumand all the available PM2.5 data were downloaded as csv format. The spatial data included the California county boundaries were from California governmental open data [here](https://data.ca.gov/dataset/ca-geographic-boundaries/resource/091ff50d-bb24-4537-a974-2ce89c6e8663) and will be used for spatial analysis in this project.
+The air monitoring data for PM2.5 were collected from [here](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). PM2.5 data for California are available from 1999 to 2018. These data were archived by year. Each file included the daily maximum PM2.5 concentration and the date recorded were continuously from January 1 to Decomber 31 for each year(though some days were missing in some years). All the available PM2.5 data were downloaded as individual csv files and will be combined and wrangled for the analysis of this projet. 
+
+The spatial data included the California county boundaries were from California governmental open data [here](https://data.ca.gov/dataset/ca-geographic-boundaries/resource/091ff50d-bb24-4537-a974-2ce89c6e8663) and will be used for spatial analysis in this project.
 
 
 Data Name                 |    Information
@@ -113,9 +116,11 @@ ca_pm_99_18 <- do.call(rbind, list(pm_ca_99, pm_ca_00, pm_ca_01, pm_ca_02, pm_ca
 
 ```
 
-``` {r wrangle}
+After pulling in all the PM2.5 monitoring data from 1999 to 2018, a data wrangling is performed to only include 9 bay area counties, and make sure date is in the right format and recognized by R. Save the processed data to the folder.
 
-# After pulling in all the PM2.5 monitoring data from 1999 to 2018, wrangle this new dataframe to only include 9 bay area counties, and make sure date is in the right format and recognized by R. Save the processed data to the folder.
+``` {r wrangle}
+# wrangle this new dataframe to only include 9 bay area counties
+# Make sure date is in the right format and recognized by R. Save the processed data to the folder.
 
 bay_pm_99_18 <-
   ca_pm_99_18 %>%
@@ -128,25 +133,31 @@ bay_pm_99_18 <-
                    COUNTY == "Santa Clara" |
                    COUNTY == "Solano" |
                    COUNTY == "Sonoma") %>%
-  select(Date, Site.ID, Daily.Mean.PM2.5.Concentration, UNITS, DAILY_AQI_VALUE, COUNTY, SITE_LATITUDE, SITE_LONGITUDE)
+  select(Date, Site.ID, Daily.Mean.PM2.5.Concentration, UNITS, DAILY_AQI_VALUE, 
+         COUNTY, SITE_LATITUDE, SITE_LONGITUDE)
 bay_pm_99_18 $Date <- as.Date(bay_pm_99_18 $Date, format = "%m/%d/%Y")
-bay_pm_99_18  <- mutate(bay_pm_99_18 , month = month(as.Date(bay_pm_99_18 $Date, "%Y-%m-%d")))
-bay_pm_99_18  <- mutate(bay_pm_99_18 , year = year(as.Date(bay_pm_99_18 $Date, "%Y-%m-%d")))
+bay_pm_99_18  <- mutate(bay_pm_99_18 , 
+                        month = month(as.Date(bay_pm_99_18$Date, "%Y-%m-%d")))
+bay_pm_99_18  <- mutate(bay_pm_99_18 , 
+                        year = year(as.Date(bay_pm_99_18 $Date, "%Y-%m-%d")))
 bay_pm_99_18 $year <- as.factor(bay_pm_99_18 $year)
 
+# Save the processed data into the "processed" folder.
 write.csv(bay_pm_99_18, file = "./Processed/bay_pm25_99to18.csv")
 
 ```
 
-
-```{r, fig.height = 5.5, fig.width = 9}
+```{r displaydata, results='hide'}
 # Display the data's structure, dimension, columns and have a look at first/last several columns
 str(bay_pm_99_18)
-dim(bay_pm_99_18)
-colnames(bay_pm_99_18)
-head(bay_pm_99_18)
-tail(bay_pm_99_18)
 
+dim(bay_pm_99_18)
+
+colnames(bay_pm_99_18)
+
+head(bay_pm_99_18)
+
+tail(bay_pm_99_18)
 ```
 
 \newpage
@@ -155,48 +166,48 @@ After data is wrangled, a clean dataframe that includes the necessary informatio
 
 Therefore, several plots were produced to look at the patterns of the concentration of PM2.5 by county and by year to identify potential interesting factors that are worth exploring in addition to the research goals.
 
-First, the 
+First, figure 1 is produced to look at each of the 9 bay area counties and their respective PM2.5 concentration level over 1999-2018. 
 
-```{r explore1, echo=FALSE}
+```{r explore1, fig.cap="Data Exploration: 9 Bay Area Counties and PM2.5", echo=FALSE, fig.height = 5.5, fig.width = 9}
 # Let's first have an exploration at the data to look at the county and their respective PM2.5
 plot.explore1 <- ggplot(bay_pm_99_18, aes(x = COUNTY, y = Daily.Mean.PM2.5.Concentration, color = year)) +
   geom_point() +
   scale_color_viridis_d()+
-  theme_classic()
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
+  xlab("County")
 print(plot.explore1)
 
 ```
 
-Then, a graph is generated to identify if there is seasonal effects that influence ambient PM2.5.
+Then, figure 2 is generated to identify if there is seasonal effects that influence ambient PM2.5.
 
-```{r explore2, echo=FALSE}
+```{r explore2, fig.cap="Data Exploration: Is There Seasonal Variability of PM2.5?", echo=FALSE, fig.height = 5.5, fig.width = 9}
 # 
 plot.explore2 <- ggplot(bay_pm_99_18, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = year)) +
   geom_point() +
   scale_color_viridis_d()+
-  theme_classic()
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)")))
 print(plot.explore2)
 
 ```
 
 After looking at the first and second exploration plot, it looks like 2017 and 2018 have some extreme data out of the normal range. Therefore, for the purpose of this project, data from 2017 and 2018 will be excluded for the most part except when California wild fire events were considered for the last research question.
 
-The third graph is generated to explore which county has the best and worst air pollution based on PM2.5 concentration.
+Figure 3 is generated to explore which county has the best and worst air pollution based on PM2.5 concentration.
 
-```{r explore3, echo=FALSE}
+```{r explore3, fig.cap="Data Exploration: Comparison among Counties", echo=FALSE, fig.height = 5.5, fig.width = 9}
 
 # Let's look at the mean of each county and have an idea of which county has the best/worst air pollution
 plot.explore3 <- ggplot(bay_pm_99_18, aes(x = year, y = Daily.Mean.PM2.5.Concentration, color = COUNTY)) +
   geom_point() +
-  scale_color_brewer(palette = "Set1")
+  scale_color_brewer(palette = "Set1") +
+  ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)")))
 print(plot.explore3)
-
 
 ```
 
 
 <Include text sections to accompany these R chunks to explain the reasoning behind your workflow, and the rationale for your approach.>
-
 
 \newpage
 
@@ -205,7 +216,11 @@ print(plot.explore3)
 
 <Include text sections to accompany these R chunks to explain the reasoning behind your workflow, rationale for your approach, and the justification of meeting or failing to meet assumptions of tests.>
 
-```{r overall, results='hide'}
+## Research Question 1: Is PM2.5 Reducing in Bay Area ?
+
+Since California implemented the PM2.5 standard in 2003. The data before 2003 will be referred as "before the state regulation", whereas data after 2003 will be referred as "after the state regulation".
+
+```{r overall, echo=FALSE}
 
 # Since California implemented the PM2.5 standard in 2003. The data before 2003 will be referred as "before the state regulation", whereas data after 2003 will be referred as "after the state regulation".
 # Divide the data according to the time when the state started to actively cut down PM2.5 pollution in the air
@@ -213,27 +228,47 @@ before_reg <- filter(bay_pm_99_18, year == 1999 | year == 2000 | year == 2001 | 
 
 after_reg <- filter(bay_pm_99_18, year != 1999 & year != 2000 & year != 2001 & year != 2002 & year != 2017 & year != 2018)
 
+```
 
-# Perform a t test to see whether there is:
-#1) a significant change in PM2.5 concentration across the bay area before and after the state started regulating PM2.5;
-#2) a decrease in the PM2.5 concentration since the state endorsed the regulation
-t.test(before_reg$Daily.Mean.PM2.5.Concentration, after_reg$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+Perform a t test to see whether there is:
 
+1) a significant change in PM2.5 concentration across the bay area before and after the state started regulating PM2.5;
+
+2) a decrease in the PM2.5 concentration since the state regulation was effective.
+
+```{r, echo=FALSE, results='hide'}
+# Perform the T-test
+t.test(before_reg$Daily.Mean.PM2.5.Concentration, 
+       after_reg$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+```
+
+The results of the T-test shows that there is a significant difference in PM2.5 concentration for all 9 counties as a whole between before the regulation and after the regulation; the test shows that there is a reduction of 4.35 micrograms/cubic meter for the bay area since the regulation (p < 0.0001, mean difference = 4.35 with 95 CI).
+
+```{r, echo=FALSE}
+# Create a new dataframe that includes only year from 1999 to 2016 and create a new column that assign each row to either before- or after-regulation.
 bay_pm_99_16.beaf <- bay_pm_99_18 %>%
   mutate(beforeorafter = factor(case_when(year == 1999 | year == 2000 | year == 2001 & year != 2002 ~ "before state regulation", year != 1999 & year != 2000 & year != 2001 & year != 2017 & year != 2018 ~ "after state regulation"), levels = c("before state regulation", "after state regulation"))) %>%
   filter(year != 2017 & year != 2018)
 
 ```
 
-```{r, fig.height = 4.7, fig.width = 8}
+Figure 4 is a graphic presentation displaying the result of the T-test.
+
+```{r, echo=FALSE, results='hold', fig.cap="Difference in Mean PM2.5 before- and after-regulation", fig.height = 4.7, fig.width = 8}
 
 # Make a violin plot to show the difference of before- and after-regulation
-plot.t.test <- ggplot(bay_pm_99_16.beaf, aes(x = beforeorafter, y = Daily.Mean.PM2.5.Concentration)) +
+plot.t.test <- 
+  ggplot(bay_pm_99_16.beaf, aes(x = beforeorafter, 
+                                y = Daily.Mean.PM2.5.Concentration)) +
   geom_violin(draw_quantiles = 0.5) +
   ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
   theme_classic()
 print(plot.t.test)
+```
 
+Figure 5 displays the an overall change in PM2.5 concentration before the regulation and after the regulation.
+
+```{r, echo=FALSE, fig.cap = "Mean PM2.5 Across 9 Bay Area Counties", fig.height = 4.7, fig.width = 8}
 
 # Make a point graph to show an overall change in PM2.5 concentration before the regulation and after the regulation
 plot.99_16 <- ggplot(bay_pm_99_16.beaf, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = beforeorafter)) +
@@ -242,24 +277,32 @@ plot.99_16 <- ggplot(bay_pm_99_16.beaf, aes(x = month, y = Daily.Mean.PM2.5.Conc
   labs(color = "California Implemented State Regulation for PM2.5 in 2003") +
   ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
   theme_classic() +
-  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
-print(plot.99_16 + ggtitle("Mean PM2.5 Across 9 Bay Area Counties"))
+  theme(legend.position = "top")
+print(plot.99_16)
 
 ```
 
+\newpage
 
-```{r}
+## Research Question 2: How Does Each County Experience Change in PM2.5 ?
 
-# Perform a t-test on each bay area county to see whether they have had significant change in PM2.5 since 2002, and whether the mean PM2.5 is decreasing.
+After running the statistical test on all of the bay area counties as a whole, a signficant reduction in PM2.5 is observed. To further explore this trend, a T-test is performed to see whether every county in bay area is reducing its PM2.5. Since Napa county does not have data before the regulation, it is excluded from this analysis. The following code is a T-test performed on Alameda County.
 
-# Test Alameda County to see if it has reduced in PM2.5 since 2002
+```{r, results='hide'}
+# First, wrangle the data to divide Alameda PM2.5 data into before- and after-regulation.
 Alameda.be <- before_reg %>%
   filter(COUNTY == "Alameda")
 Alameda.af <- after_reg %>%
   filter(COUNTY == "Alameda")
-     
-t.test(Alameda.be$Daily.Mean.PM2.5.Concentration, Alameda.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
- 
+
+# Run a T-test Alameda County to see if it has reduced in PM2.5 since 2002.    
+t.test(Alameda.be$Daily.Mean.PM2.5.Concentration, 
+       Alameda.af$Daily.Mean.PM2.5.Concentration, alternative = "greater")
+```
+
+Run the same test for each of the 8 counties. A result is summarized in this table:
+
+```{r, echo=FALSE, results='hide'}
 # Perform a T Test on Contra Costa County to see if it has reduced in PM2.5 since 2002
 ContraCosta.be <- before_reg %>%
   filter(COUNTY == "Contra Costa")
@@ -323,6 +366,23 @@ t.test(Sonoma.be$Daily.Mean.PM2.5.Concentration, Sonoma.af$Daily.Mean.PM2.5.Conc
 nonapa.bay_pm_99_16 <- bay_pm_99_16.beaf %>%
   filter(COUNTY != "Napa")
 
+```
+
+County Name         |         Results
+--------------------|---------------------------------------------------------
+Alameda             | Significant reduction, mean differnce = -3.89 (p<0.0001)
+Contra Costa        | Significant reduction, mean differnce = -4.30 (p<0.0001)
+Marin               | No significant change, mean difference = +1.38 (p = 1)
+San Francisco       | Singificant reduction, mean difference = -4.16 (p<0.0001)
+San Mateo           | Significant reduction, mean difference = -2.49 (p<0.0001)
+Santa Clara         | significant reduction, mean difference = -5.59 (p<0.0001)
+Solano              | Significant reduction, mean difference = -3.60 (p<0.0001)
+Sonoma              | Significant reduction, mean difference = -3.37 (p<0.0001)
+
+
+As seen in figure 6, every county except Marin county shows a signficant reduction in PM2.5 concentration since the regulation. Even though Marin County seems to show a non-significant increase in PM2.5, Marin County is already at the lower end of PM2.5 level to begin with, comparing to the rest of the counties.
+
+```{r, echo=FALSE, fig.cap="PM2.5 Comparison Before and After Regulation for 8 Bay Area Counties", fig.height= 4.7, fig.width=8}
 plot.9county.beaf <- ggplot(nonapa.bay_pm_99_16, aes(x = COUNTY, y = Daily.Mean.PM2.5.Concentration, color = beforeorafter)) +
   geom_boxplot() +
   scale_color_brewer(palette = "Set1") +
@@ -330,12 +390,16 @@ plot.9county.beaf <- ggplot(nonapa.bay_pm_99_16, aes(x = COUNTY, y = Daily.Mean.
   labs(color = "California Implemented State Regulation for PM2.5 in 2003") +
   ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
   theme_classic() +
-  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5))
-print(plot.9county.beaf + ggtitle("PM2.5 Comparison Before and After AAQS for 8 Bay Area Counties"))
+  theme(legend.position = "top")
+print(plot.9county.beaf)
 
 ```
 
-```{r}
+\newpage
+
+## The Spatial Display of the Results of the Regulation
+
+```{r, include=FALSE}
 # Read in the California County shapefile
 bay_county <- st_read("./SpatialData/CA_Counties_TIGER2016.shp") %>%
   filter(NAME == "Alameda" |
@@ -370,8 +434,7 @@ before_reg_sf_utm <- st_transform(before_reg_sf, crs = 26910)
 after_reg_sf <- st_as_sf(after_reg_avg, coords = c("Longitude","Latitude"), crs = 4326)
 after_reg_sf_utm <- st_transform(after_reg_sf, crs = 26910)
 
-# 
-
+# Join the county boundary shapefile to the site station
 join.county.pm.be <- st_join(before_reg_sf_utm, bay_county_utm, join = st_intersects)
 county.pm.be.dt <- st_drop_geometry(join.county.pm.be)
 bay_full.before <- left_join(county.pm.be.dt, bay_county_utm)
@@ -382,13 +445,20 @@ bay_full.after <- left_join(county.pm.af.dt, bay_county_utm)
 
 mean(before_reg_avg$meanPM)
 
+```
+
+Figure 7 and figure 8 shows the level of air pollution regarding PM2.5 concentration in a spatial display. The color is calibrated at the regulation standard, PM2.5 = 12 micrograms/cubic meter. The more orange the county is, the higher the PM2.5 concentration is. The more blue the county is, the lower the PM2.5 concentration is. The majority of PM2.5 high level seems to concentrate in the eastern part of the Bay Area, where it is mostly inland and urban environment.
+
+```{r, echo=FALSE, fig.cap="Mean PM2.5 in Each Bay Area County Before 2003", fig.height = 8, fig.width = 8}
 map.pm25.before <- ggplot() +
   geom_sf(data = bay_full.before, aes(fill = meanPM), color = "grey") +
   scale_fill_gradient2(low = "lightskyblue", high = "red", midpoint = 12) +
   geom_sf_label(data = bay_full.before, aes(label = COUNTY)) +
   labs(fill="Mean PM2.5 (1999-2002)")
 print(map.pm25.before)
+```
 
+```{r, echo=FALSE, fig.cap="Mean PM2.5 in Each Bay Area County After 2003", fig.height = 8, fig.width = 8}
 map.pm25.after <- ggplot() +
   geom_sf(data = bay_full.after, aes(fill = meanPM), color = "grey") +
   scale_fill_gradient2(low = "lightskyblue", high = "red", midpoint = 12) +
@@ -396,14 +466,15 @@ map.pm25.after <- ggplot() +
   labs(fill="Mean PM2.5 (2003-2016)")
 print(map.pm25.after)
 
-
-
 ```
 
 
+\newpage
 
-```{r, fig.height = 4.7, fig.width = 8}
+## Research Question 3: Is There a Point of Change in the Data to Reflect the Effectiveness of the Regulation? A Close Look at Santa Clara County.
 
+
+```{r, echo=FALSE, results='hide', fig.height = 4.7, fig.width = 8}
 # Single out Santa Clara County; wrangle the data to just include data for Santa Clara County and from year 1999 to 2016.
 sc_pm_99_16 <- 
   ca_pm_99_18 %>%
@@ -416,80 +487,65 @@ sc_pm_99_16 <- sc_pm_99_16 %>%
 sc_pm_99_16$year <- as.factor(sc_pm_99_16$year)
 sc_pm_99_16 <- sc_pm_99_16 %>%
   filter(year != 2017 & year != 2018)
+```
 
+First, ingle out Santa Clara County and wrangle the data to just include data for Santa Clara County and from year 1999 to 2016.
 
+Perform a time series analysis using Mann-Kendall trend test to see whether there is a trend in the PM2.5 concentration over time.
+```{r, results='hide'}
 # Perform the time series analysis on Santa Clara County
 mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration)
+```
 
-# Mann-Kendall trend test
-# 
-# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration
-# z = -27.286, n = 13769, p-value < 2.2e-16
-# alternative hypothesis: true S is not equal to 0
-# sample estimates:
-#             S          varS           tau 
-# -1.469579e+07  2.900619e+11 -1.555172e-01 
-# The result shows that there is a significant negative trend over the time, indicating that PM2.5 is going down over the time span.
+The result shows that there is a significant negative trend from 1999 to 2016 (z = -27.29, p < 0.0001).
 
+```{r, results='hide'}
 # Perform a pettitt test to detect where is the changing point in the data
 pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration)
+```
 
-# Pettitt's test for single change-point detection
-# 
-# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration
-# U* = 11805000, p-value < 2.2e-16
-# alternative hypothesis: two.sided
-# sample estimates:
-# probable change point at time K 
-#                            5463  
+Pettitt's test shows that there is a point of change occurred at location 5463(P<0.0001), which refers to Februry 4, 2009. This seems a reasonable time for the regulation to take effecst. However, more investigation of the data is needed before any conclusion can be made. Perform another Mann-Kendall trend test and pettitt test to see whether there is a trend in between the starting date to Februry 4, 2009.
 
-# The result shows that it's at location 5463, which is on 2009-02-04
-
-# Perform another pettitt test to see whether there is any point of significant change before this date and after this date. And we want to see whether trend is going up or down.
+```{r, results='hide'}
+# Perform another pettitt test to see whether there is a trend.
 mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463])
-
-# Mann-Kendall trend test
-# 
-# data:  sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463]
-# z = -10.332, n = 5463, p-value < 2.2e-16
-# alternative hypothesis: true S is not equal to 0
-# sample estimates:
-#             S          varS           tau 
-# -1.390766e+06  1.811988e+10 -9.344646e-02 
-# The result shows an overall negative trend in concentration of PM2.5 from 1999 to 2009-02-04.
-
-
 pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:5463])
-# The result shows that at location 2109, there is a significant point of change; before this date, the overall trend is negative.
+```
 
+The Mann-Kendall trend test shows that there is a significant negative trend leading up to Februry 4, 2009(z = -10.33, P<0.0001). And the result of pettitt test shows that the point of change occurs at position 2108, which refers to Feb 1, 2003. This looks like a reasonable estimation of the time that it takes for the policy to take effects. To check that this is the first turning point, perform another round of Mann-Kendall trend test and pettitt test to validate this conclusion.
+
+```{r, results='hide'}
+# Perform another Mann-Kendall trend test and pettitt test
 mk.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:2108])
-
-# The result shows that the trend of ambient PM2.5 is decreasing as it approaches position 2108, which equals to Feb 1, 2003. Run the pettitt test again to see if there is any significant point of change before Feb 1, 2003 and after 2003.
-
 pettitt.test(sc_pm_99_16$Daily.Mean.PM2.5.Concentration[1:2108])
+```
 
-# The result shows that at location 350, which equals to Jan 12, 2000, is a possible point of change; however, this date falls out of range of our interest. Therefore, since the state regulation was effective in 2003, the first significant change of point occurs on Feb 1, 2003. 
+The result shows that the trend of ambient PM2.5 is a negative one as it approaches Feb 1, 2003. The pettitt test again to see if there is any significant point of change before Feb 1, 2003 and after 2003. The result shows that at location 350, which equals to Jan 12, 2000, is a possible point of change; however, this date falls out of range of our interest because we are only interested in the time after the regulation was implemented. Therefore, since the state regulation was effective in 2003, the first significant change of point occurs on Feb 1, 2003.
 
+Figure 9 presents the change in the ambient PM2.5 concentration, separated by months, since 1999 to 2016.
 
+```{r, echo=FALSE, fig.cap="PM2.5 Concentration Trend from 1999 to 2016 in Santa Clara County"}
 # plot the data in santa clara county
-plot.pm.sc <- ggplot(sc_pm_99_16, aes(x = month, y = Daily.Mean.PM2.5.Concentration, color = year)) +
+plot.pm.sc <- ggplot(sc_pm_99_16, aes(x = month, 
+                                      y = Daily.Mean.PM2.5.Concentration, 
+                                      color = year)) +
   geom_point() +
   scale_color_viridis_d() +
   geom_hline(yintercept = 12, linetype = "dashed", color = "red") +
-  annotate(geom = "text", x= 10, y =10, label = "PM2.5 Cap = 12 ug/m3", color = "red", size = 3.5) +
+  annotate(geom = "text", x= 10, y =10, label = "PM2.5 Cap = 12 ug/m3", 
+           color = "red", size = 3.5) +
   ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
-  scale_x_continuous(breaks = c(1:12)) +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5))
-print(plot.pm.sc + ggtitle("PM2.5 Concentration Trend from 1999 to 2016 in Santa Clara County"))
-
-
-
+  scale_x_continuous(breaks = c(1:12))
+print(plot.pm.sc)
 ```
 
+\newpage
 
-```{r}
+## Research Question 4: Does EPA Air Quality Monitoring Data Capture Air Pollution Disturbance like Wildfire? A Close Look at Solano County in 2018.
 
+EPA air quality data are used by policymakers, researchers, and environmental management professionals frequently. Therefore, it is important that these data accurately reflect what's happening in the environment. PM2.5 is a large component of the pollutants emitted from fire. This section explores the PM2.5 data for Solano County in 2018 to see if it correctly captures the wildfires events happened in this county on August 10, Oct 7, and November 8, 2018. 
+
+```{r, echo=FALSE, results='hide'}
 # Prepare the data to look at the PM2.5 concentration for Solano County in 2018
 solano_pm_18 <- 
   bay_pm_99_18 %>%
@@ -499,26 +555,27 @@ solano_pm_18 <-
 solano_pm_18$Daily.Mean.PM2.5.Concentration <- as.numeric(solano_pm_18$Daily.Mean.PM2.5.Concentration)
 solano_pm_18 <- mutate(solano_pm_18, month = month(as.Date(solano_pm_18$Date, "%Y-%m-%d"))) 
 solano_pm_18$month <- as.factor(solano_pm_18$month)
+```
 
-# so_timeseries <- ts(solano_pm_18$Daily.Mean.PM2.5.Concentration, start = c(2018, 1), frequency = 12)
-# 
-# so_time_diff <- smk.test(so_timeseries)
-# so_time_diff
-
-bartlett.test(solano_pm_18$Daily.Mean.PM2.5.Concentration ~ solano_pm_18$month)
-
-PM2.5.anova <- lm(solano_pm_18$Daily.Mean.PM2.5.Concentration ~ solano_pm_18$month)
+```{r, results='hide'}
+# Perform an anova test to see if there is a significant difference between 
+# August, October, and November comparing to reference month, January, which
+# no fire event happened.
+PM2.5.anova <- lm(solano_pm_18$Daily.Mean.PM2.5.Concentration 
+                  ~ solano_pm_18$month)
 summary(PM2.5.anova)
+```
 
+The result shows that November's mean PM2.5 concentration is significantly different from the reference month (P < 0.0001). Therefore, the difference between month that has wildfire and the month that does not is only reflective of November, as shown in Figure 10. 
+
+However, this test does not conclude that the data are not accurate. There are days that are missing, especially during the second fire event, which half of month's data were missing. Therefore, this might lead to the result that the expected worse air pollution is not reflected in the data.
+
+```{r, echo=FALSE, fig.cap="Overview of PM2.5 Concentration in 2018, Solano County"}
 plot.solano.fire18 <- ggplot(solano_pm_18, aes(x = month, y = Daily.Mean.PM2.5.Concentration)) +
   geom_point(color = "forestgreen", alpha = 0.8) +
   annotate(geom = "text", x = 10.5, y = 185, label = "Fire 'Nurse' (Nov 8, 2018)", color = "darkorange", fontface = "bold") +
-    ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) +
-  theme_classic() +
-  ggtitle("Overview of PM2.5 Concentration in 2018, Solano County") +
-  theme(plot.title = element_text(hjust = 0.5))
+    ylab(expression(paste(y="Daily Mean PM2.5 Concentration ( ", mu,"g/m3)"))) 
 print(plot.solano.fire18)
-
 
 ```
 
@@ -526,6 +583,13 @@ print(plot.solano.fire18)
 
 # Summary and Conclusions
 <Summarize your major findings from your analyses. What conclusions do you draw from your findings? Make sure to apply this to a broader application for the research question you have answered.>
+
+Policy interventions in air quality management have brought tremendous success nation-wide in the U.S. since Clean Air Act. In order to fully assess the benefits of these interventions, data analysis is necessary to make conclusions about the success of them. This research project serves to provide an in-depth policy analysis at a regional scale in Bay Area, California. This analysis covers the larger spectrum of the data by looking at 9 bay area counties as a whole. Also, individual county is compared before- and after- regulation. 
+
+As a region, Bay Area reduced its PM2.5 concentration significantly after the new regulation of daily maximum PM2.5 was implemented. Also, most counties except Marin County, by itself, has shown that PM2.5 concentration dropped significant comparing to the level before the regulation. The spatial distribution shows that eastern part of the Bay Area is where majority of PM2.5 pollution concentrates. This is significant because it can provide a spatial direction for future air quality management to focus on. When considering the time it takes for a policy to take effects, Santa Clara County shows that it takes 2 months to see a point of change; there is a negative trend in PM2.5 level following that point. Last but not least, EPA air monitoring data can capture some of the natural disturbance events such as wildfires but the data are not reflecting all of the events, partially due to lack of data during these events. This identifies an important gap in the data monitoring where it is much needed to record the air quality data during natural disturbance events.
+
+In a nutshell, this research project concludes that since the state of California endorsed the federal regulation on PM2.5 standard, proofs from the data have shown significant reduction in PM2.5 at a regional level. However, this project acknowledge that the implementation of the state regulation standard might not be the only contribution of PM2.5 reduction. It is still worth exploring other kinds of factors that contributed to the reduction in PM2.5 across the Bay Area. Also, future air quality management effort still needs to focus on urban and inland areas as the spatial data shows that these areas tend to have higher concentration of PM2.5 and longer period time of accumulation of pollutants.
+
 
 
 
