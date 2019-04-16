@@ -16,7 +16,6 @@ abstract: This data analysis aims to investigate the effectiveness of the implem
   was successful based on the data.
 output:
   bookdown::pdf_document2: 
-    toc: true
     number_sections: true
     includes:  
       in_header: figure.tex
@@ -24,13 +23,14 @@ output:
 header-includes:
    - \usepackage{floatrow}
    - \floatsetup[figure]{capposition=top}
-
 ---
 
 \newpage
-\newpage
+
 \tableofcontents 
+
 \listoffigures
+
 \newpage
 
 <Information in these brackets are used for annotating the RMarkdown file. They will not appear in the final version of the PDF document>
@@ -395,7 +395,7 @@ mean(before_reg_avg$meanPM)
 
 ```
 
-Figure \@ref(fig:beforereg) and figure \@ref(fig:afterreg) shows the level of air pollution regarding PM2.5 concentration in a spatial display. The color is calibrated at the regulation standard, PM2.5 = 12 micrograms/cubic meter. The more orange the county is, the higher the PM2.5 concentration is. The more blue the county is, the lower the PM2.5 concentration is. The majority of PM2.5 high level seems to concentrate in the eastern part of the Bay Area, where it is mostly inland and urban environment.
+Figure \@ref(fig:beforereg) and figure \@ref(fig:afterreg) shows the level of air pollution regarding PM2.5 concentration in a spatial display. The color is calibrated at the regulation standard, PM2.5 = 12 micrograms/cubic meter. The more orange the county is, the higher the PM2.5 concentration is. The more blue the county is, the lower the PM2.5 concentration is. Comparisons between the two map visualizations shows that most of the counties have reduced their PM2.5 concentration to below 12 micrograms/cubic meter. The majority of PM2.5 high level seems to concentrate in the eastern part of the Bay Area, where it is mostly inland and urban environment.
 
 
 \newpage
@@ -574,7 +574,7 @@ map.pm25.after <- ggplot() +
 print(map.pm25.after)
 ```
 
-```{r sctrend, fig.cap="PM2.5 Concentration Trend from 1999 to 2016 in Santa Clara County", echo=FALSE, fig.height= 4.7, fig.width=8}
+```{r sctrend, fig.cap="PM2.5 Concentration Trend from 1999 to 2016 in Santa Clara County", echo=FALSE, fig.height= 5, fig.width=8}
 # plot the data in santa clara county
 plot.pm.sc <- ggplot(sc_pm_99_16, aes(x = month, 
                                       y = Daily.Mean.PM2.5.Concentration, 
@@ -606,7 +606,7 @@ Policy interventions in air quality management have brought tremendous success n
 
 As a region, Bay Area reduced its PM2.5 concentration significantly after the new regulation of daily maximum PM2.5 was implemented. Also, most counties except Marin County, by itself, has shown that PM2.5 concentration dropped significant comparing to the level before the regulation. The spatial distribution shows that eastern part of the Bay Area is where majority of PM2.5 pollution concentrates. This is significant because it can provide a spatial direction for future air quality management to focus on. When considering the time it takes for a policy to take effects, Santa Clara County shows that it takes 2 months to see a point of change; there is a negative trend in PM2.5 level following that point. Last but not least, EPA air monitoring data can capture some of the natural disturbance events such as wildfires but the data are not reflecting all of the events, partially due to lack of data during these events. This identifies an important gap in the data monitoring where it is much needed to record the air quality data during natural disturbance events.
 
-In a nutshell, this research project concludes that since the state of California endorsed the federal regulation on PM2.5 standard, proofs from the data have shown significant reduction in PM2.5 at a regional level. However, this project acknowledge that the implementation of the state regulation standard might not be the only contribution of PM2.5 reduction. It is still worth exploring other kinds of factors that contributed to the reduction in PM2.5 across the Bay Area. Also, future air quality management effort still needs to focus on urban and inland areas as the spatial data shows that these areas tend to have higher concentration of PM2.5 and longer period time of accumulation of pollutants.
+In a nutshell, this research project concludes that since the state of California endorsed the federal regulation on PM2.5 standard, the data have shown significant reduction in PM2.5 at a regional level. The results support that policy intervention is an effective way to protect the health and wellbeing of human and environment. However, this project acknowledge that the implementation of the state regulation standard might not be the only contribution of PM2.5 reduction. It is still worth exploring other kinds of factors that contributed to the reduction in PM2.5 across the Bay Area. Also, future air quality management effort still needs to focus on urban and inland areas as the spatial data shows that these areas tend to have higher concentration of PM2.5 and longer period time of accumulation of pollutants.
 
 
 
