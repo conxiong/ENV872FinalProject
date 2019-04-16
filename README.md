@@ -10,7 +10,7 @@ The dataset also contains county boundary in California.
 ## Database Information
 Data were collected using the Doanload Daily Data tool (https://www.epa.gov/outdoor-air-quality-data/download-daily-data).
 The following selections were made: 
-* PM2.5 (Pollurant)
+* PM2.5 (Pollutant)
 * 1999 to 2018 (Year)
 * California (Geographic Area)
 * Download CSV (spreadsheet)
